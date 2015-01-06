@@ -1,5 +1,6 @@
 import QtQuick 2.2
 import QtQuick.Window 2.0
+import "presentation"
 
 Window {
     visible: true

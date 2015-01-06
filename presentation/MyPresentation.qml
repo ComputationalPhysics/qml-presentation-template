@@ -4,6 +4,7 @@ import LatexPresentation 1.0
 import QtQuick.Controls 1.1
 import QtMultimedia 5.0
 import QtGraphicalEffects 1.0
+import "../qml"
 
 TransitionPresentation
 {

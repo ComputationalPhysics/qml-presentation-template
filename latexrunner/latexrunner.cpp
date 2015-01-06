@@ -16,7 +16,6 @@ QString LatexRunner::createFormula(QString formula, QString color, bool centered
 {
     // TODO use QProcess instead of system()
     // TODO use Qt to create directories
-    qDebug() << "Requested to create formula " << formula;
 
     QString tmpDirName = "/tmp/latexpresentation/";
     QString baseFileData = formula + color + QString(centered) + QString(dpi());
@@ -28,14 +27,24 @@ QString LatexRunner::createFormula(QString formula, QString color, bool centered
         QDir().mkdir(tmpDirName);
     }
 
+    QFile templateFile(":/latex/formula.tex");
+    QString templateTargetFileName = tmpDirName + "/formula.tex";
+    QFile templateTargetFile(templateTargetFileName);
+    if(templateTargetFile.exists()) {
+        templateTargetFile.remove();
+    }
+    if(!templateFile.copy(templateTargetFileName)) {
+        qWarning() << "Could not copy template file for formula" << formula << "\n"
+                   << "Error: " << templateFile.errorString();
+    }
+
     QString imageFileName = tmpDirName + baseFileName + ".png";
     QString returnFileName = "file://" + imageFileName;
     QFile imageFile(imageFileName);
     if(imageFile.exists() && !forceCompile()) {
-        qDebug() << "Formula image exists. Using existing version.";
         return returnFileName;
     } else {
-        qDebug() << "File does not exist. Creating...";
+        qDebug() << "Creating formula for the first time: " << formula;
         QFile myFormulaFile(myFormulaFileName);
         myFormulaFile.open(QIODevice::WriteOnly | QIODevice::Text);
         myFormulaFile.write(formula.toUtf8());
@@ -45,7 +54,7 @@ QString LatexRunner::createFormula(QString formula, QString color, bool centered
         if(centered) {
             centerCommand = "\\def \\mycentered{} ";
         }
-        QString latexCommand = "pdflatex -interaction=nonstopmode --jobname formula \"" + centerCommand + "\\def \\mycolor{" + color + "} \\def \\myfile{" + myFormulaFileName + "} \\input{qml/latexpresentation/formula.tex}\"";
+        QString latexCommand = "pdflatex -interaction=nonstopmode --jobname formula \"" + centerCommand + "\\def \\mycolor{" + color + "} \\def \\myfile{" + myFormulaFileName + "} \\input{" + templateTargetFileName + "}\"";
         qDebug() << latexCommand;
         system(latexCommand.toStdString().c_str());
 
